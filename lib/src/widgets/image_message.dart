@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import '../conditional/conditional.dart';
 import '../util.dart';
@@ -48,6 +49,11 @@ class _ImageMessageState extends State<ImageMessage> {
     }
   }
 
+  bool _isOurs() {
+    final _user = InheritedUser.of(context).user;
+    return _user.id == widget.message.author.id;
+  }
+
   void _getImage() {
     final oldImageStream = _stream;
     _stream = _image?.resolve(createLocalImageConfiguration(context));
@@ -72,6 +78,20 @@ class _ImageMessageState extends State<ImageMessage> {
   void dispose() {
     _stream?.removeListener(ImageStreamListener(_updateImage));
     super.dispose();
+  }
+
+  Widget _renderImage() {
+    var isOurs = _isOurs();
+    var thumbnail = widget.message.thumbnail;
+
+    if (isOurs && _image is FileImage) {
+      return thumbnail != null ? BlurHash(hash: thumbnail) : Container();
+    }
+
+    return Image(
+      fit: BoxFit.cover,
+      image: _image!,
+    );
   }
 
   @override
@@ -103,10 +123,7 @@ class _ImageMessageState extends State<ImageMessage> {
               width: 64,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15),
-                child: Image(
-                  fit: BoxFit.cover,
-                  image: _image!,
-                ),
+                child: _renderImage(),
               ),
             ),
             Flexible(
@@ -161,10 +178,7 @@ class _ImageMessageState extends State<ImageMessage> {
         ),
         child: AspectRatio(
           aspectRatio: _size.aspectRatio > 0 ? _size.aspectRatio : 1,
-          child: Image(
-            fit: BoxFit.contain,
-            image: _image!,
-          ),
+          child: _renderImage(),
         ),
       );
     }
