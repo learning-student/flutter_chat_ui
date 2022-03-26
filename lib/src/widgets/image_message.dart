@@ -84,7 +84,12 @@ class _ImageMessageState extends State<ImageMessage> {
     var isOurs = _isOurs();
     var thumbnail = widget.message.thumbnail;
 
-    if (isOurs && _image is FileImage) {
+    // while the other side still sending the image we might receive
+    // the message with local path address,
+    // in this case we obviously cannot show the image
+    // if thumbnail is provided, we'll render the  thumbnail
+    // otherwise we will render an empty container
+    if (!isOurs && _image is FileImage) {
       return thumbnail != null ? BlurHash(hash: thumbnail) : Container();
     }
 
